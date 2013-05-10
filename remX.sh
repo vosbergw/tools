@@ -42,7 +42,7 @@ FWDX="-fa -L 5902:localhost:5900 -o ExitOnForwardFailure=yes"
 
 RREMX="export UNIXPW_DISABLE_SSL=1; export SUDO_ASKPASS=/usr/bin/ssh-askpass; \
     sudo -A /usr/bin/x11vnc --quiet -nopw -once -timeout 60 -nolookup -solid \
-    -localhost -auth /run/lightdm/root/:0 -users $USER -ncache 10 -xkb \
+    -localhost -auth $AUTH -users $USER -ncache 10 -xkb \
     -display :0"
 
 UREMX="export UNIXPW_DISABLE_SSL=1 ; /usr/bin/x11vnc --quiet -nopw -once \
@@ -137,6 +137,8 @@ then
   $SSH -t $FWD $REMOTE "$UREMX" || abort "failed to background ssh tunnel"
 else
   echo -e "no user logged in, starting x11vnc as root\n"
+  AUTH=$($SSH $REMOTE ps -efa | grep auth | grep -v grep \
+    awk '{print $11}')
   $SSH $FWDX $REMOTE "$RREMX" || abort "failed to background ssh tunnel"
 fi
 
