@@ -101,8 +101,7 @@ else
   exit
 fi
 
-# make sure there are no existing x11vnc servers running
-# NOTE: this assumes you have exlusive remote access to x11vnc!!!
+# make sure x11vnc and ssh-askpass are available on the remote system
 
 R=$($SSH $REMOTE "which x11vnc" 2>&1 )
 S=$($SSH $REMOTE "which ssh-askpass" 2>&1 )
@@ -127,6 +126,9 @@ then
 fi
 
 
+# make sure there are no existing x11vnc servers running
+# NOTE: this assumes you have exlusive remote access to x11vnc!!!
+
 kill_x11vnc
 echo -e "launching remote x11vnc: $REMX\n\n"
 
@@ -138,13 +140,13 @@ then
 else
   echo -e "no user logged in, starting x11vnc as root\n"
   # this check for the authorization file probably needs improving
-  export AUTH=$($SSH $REMOTE ps -efa | grep auth | grep -v grep | \
+  export AUTH=$($SSH $REMOTE ps -efa | grep "/usr/bin/X" | grep -v grep | \
     awk '{print $11}')
   eval "$SSH $FWDX $REMOTE \"$RREMX\"" || abort "failed to background ssh tunnel"
 fi
 
-# wait up to 30 seconds for tunnel
-echo -e "wait up to 30s for tunnel\n"
+# wait up to 60 seconds for tunnel
+echo -e "wait up to 60s for tunnel\n"
 let t=30
 while (( $t ))
 do
@@ -163,8 +165,8 @@ done
 sleep 2
 echo -e "cleaning up\n"
 
-#pkill -P $ME -u $(whoami) ssh  >>/dev/null 2>&1
-#pkill -P 1 -u $(whoami) ssh  >>/dev/null 2>&1
+pkill -P $ME -u $(whoami) ssh  >>/dev/null 2>&1
+pkill -P 1 -u $(whoami) ssh  >>/dev/null 2>&1
 kill_x11vnc
 
 echo -e "exit $0\n"
