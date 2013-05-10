@@ -19,13 +19,23 @@
 
 . ~/lib/bash.utils/utils.sh || exit
 
+if [[ ${#1} == 0 ]]
+then
+  echo "usage: $0 <user>@<remote host>[:port]"
+  exit
+fi
 
 ME=$BASHPID
-REMOTE="$1"
+REMOTE=$(echo $1 | cut -d: -f1)
+PORT=$(echo $1 | cut -d: -f2)
 USER=$(echo $REMOTE | cut -d"@" -f1)
 GEOMETRY="1024x768"
 
-SSH="/usr/bin/ssh -p 2222"
+SSH="/usr/bin/ssh"
+if [[ ${#PORT} -gt 0 ]]
+then
+  SSH="$SSH -p $PORT"
+fi
 
 FWD="-fax -L 5902:localhost:5900 -o ExitOnForwardFailure=yes"
 FWDX="-fa -L 5902:localhost:5900 -o ExitOnForwardFailure=yes"
@@ -37,6 +47,8 @@ RREMX="export UNIXPW_DISABLE_SSL=1; export SUDO_ASKPASS=/usr/bin/ssh-askpass; \
 
 UREMX="export UNIXPW_DISABLE_SSL=1 ; /usr/bin/x11vnc --quiet -nopw -once \
     -timeout 60 -nolookup -solid -localhost -ncache 10 -xkb -display :0" 
+
+
 
 
 function kill_x11vnc()
@@ -58,11 +70,9 @@ function kill_x11vnc()
   fi
 }
 
-if [[ ${#1} == 0 ]]
-then
-  echo "usage: $0 <user>@<remote host>"
-  exit
-fi
+
+####### main entry point
+
 
 
 if [[ ${#VNCVIEWER} -gt 0 ]] 
