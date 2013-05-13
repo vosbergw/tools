@@ -29,6 +29,7 @@ ME=$BASHPID
 REMOTE=$(echo $1 | cut -d: -f1)
 PORT=$(echo $1 | cut -d: -f2)
 USER=$(echo $REMOTE | cut -d"@" -f1)
+ASKPASS=/usr/bin/ssh-askpass
 GEOMETRY="1024x768"
 
 SSH="/usr/bin/ssh"
@@ -40,7 +41,7 @@ fi
 FWD="-fax -L 5902:localhost:5900 -o ExitOnForwardFailure=yes"
 FWDX="-fa -L 5902:localhost:5900 -o ExitOnForwardFailure=yes"
 
-RREMX="export UNIXPW_DISABLE_SSL=1; export SUDO_ASKPASS=/usr/bin/ssh-askpass; \
+RREMX="export UNIXPW_DISABLE_SSL=1; export SUDO_ASKPASS=$ASKPASS; \
     sudo -A /usr/bin/x11vnc --quiet -nopw -once -timeout 60 -nolookup -solid \
     -localhost -auth \$AUTH -users \$USER -ncache 10 -xkb \
     -display :0"
@@ -53,7 +54,8 @@ UREMX="export UNIXPW_DISABLE_SSL=1 ; /usr/bin/x11vnc --quiet -nopw -once \
 
 function kill_x11vnc()
 {
-  # usage: kill_x11vnc user@remote
+  # usage: kill_x11vnc 
+  #        useres $SSH and $REMOTE
 
   X11PIDS=$($SSH $REMOTE pgrep x11vnc)
   if [[ ${#X11PIDS} -gt 0 ]]
@@ -64,7 +66,7 @@ function kill_x11vnc()
     X11PIDS=$($SSH $REMOTE pgrep x11vnc)
     if [[ ${#X11PIDS} -gt 0 ]]
     then
-      $SSH -t $REMOTE "export SUDO_ASKPASS=/usr/bin/ssh-askpass ; \
+      $SSH -t $REMOTE "export SUDO_ASKPASS=$ASKPASS; \
         sudo -A kill $X11PIDS" >>/dev/null 2>&1
     fi
   fi
